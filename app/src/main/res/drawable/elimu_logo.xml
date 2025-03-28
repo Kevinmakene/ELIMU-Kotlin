@@ -1,0 +1,31 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Fond circulaire -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M50,2 A48,48 0 1,1 50,98 A48,48 0 1,1 50,2" />
+
+    <!-- Livre ouvert -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,35 Q40,25 50,35 Q60,25 80,35 L80,75 Q60,65 50,75 Q40,65 20,75 Z" />
+
+    <!-- Pages du livre -->
+    <path
+        android:fillColor="#E3F2FD"
+        android:pathData="M22,38 Q40,28 50,38 Q60,28 78,38 L78,70 Q60,60 50,70 Q40,60 22,70 Z" />
+
+    <!-- Chapeau de diplômé -->
+    <path
+        android:fillColor="#1A237E"
+        android:pathData="M30,28 L70,28 L50,15 Z" />
+
+    <!-- Petite cordelette du chapeau -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M50,15 L50,10" />
+</vector>
