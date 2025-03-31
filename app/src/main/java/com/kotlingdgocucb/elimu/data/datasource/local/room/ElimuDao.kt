@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.kotlingdgocucb.elimu.data.datasource.local.room.entity.Mentor
+import com.kotlingdgocucb.elimu.data.datasource.local.room.entity.ProgressEntity
 import com.kotlingdgocucb.elimu.data.datasource.local.room.entity.Review
 import com.kotlingdgocucb.elimu.data.datasource.local.room.entity.ReviewCreate
 import com.kotlingdgocucb.elimu.data.datasource.local.room.entity.Video
@@ -105,4 +106,11 @@ interface ElimuDao {
 
  @Query("SELECT * FROM review_create")
  suspend fun getAllReviewCreates(): List<ReviewCreate>
+
+
+ @Insert(onConflict = OnConflictStrategy.REPLACE)
+ suspend fun insertProgress(progress: ProgressEntity): Long
+
+ @Query("SELECT * FROM progress WHERE videoId = :videoId AND menteeEmail = :menteeEmail LIMIT 1")
+ suspend fun getProgress(videoId: Int, menteeEmail: String): ProgressEntity?
 }

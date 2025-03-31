@@ -25,5 +25,5 @@ data class Review(
     @SerialName("mentee_email") val menteeEmail: String,
     val stars: Int,
     val comment: String?,
-    @SerialName("created_at") val createdAt: String // Vous pouvez adapter le type si nécessaire
+    @SerialName("created_at") val createdAt: String
 )

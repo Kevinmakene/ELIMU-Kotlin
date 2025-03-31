@@ -1,7 +1,10 @@
 package com.kotlingdgocucb.elimu.ui
 
+import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -10,17 +13,25 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
@@ -28,72 +39,99 @@ import com.airbnb.lottie.compose.*
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import com.kotlingdgocucb.elimu.R
 import com.kotlingdgocucb.elimu.domain.model.User
 import com.kotlingdgocucb.elimu.data.datasource.local.room.entity.Video
 import com.kotlingdgocucb.elimu.ui.components.Rating
 import com.kotlingdgocucb.elimu.ui.viewmodel.VideoViewModel
-import kotlinx.coroutines.launch
+import com.kotlingdgocucb.elimu.ui.theme.ElimuTheme
+
+// Composable permettant d'afficher un titre tronqué (maxLength lettres)
+// L'utilisateur peut maintenir l'appui sur le titre pour basculer entre l'affichage complet et tronqué.
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ExpandableTitle(
+    title: String,
+    maxLength: Int = 25,
+    style: TextStyle,
+    color: Color
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val displayTitle = if (expanded || title.length <= maxLength) title else title.take(maxLength) + "..."
+    Text(
+        text = displayTitle,
+        style = style,
+        color = color,
+        modifier = Modifier.combinedClickable(
+            onClick = { /* Action sur clic simple si nécessaire */ },
+            onLongClick = { expanded = !expanded }
+        )
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseScreen(
     videoViewModel: VideoViewModel = koinViewModel(),
     navController: NavController,
-    // Nouveau paramètre pour indiquer le track de l'utilisateur
     userInfo: User?
 ) {
     // Observer la liste des vidéos depuis le ViewModel
     val videosState = videoViewModel.videos.observeAsState(initial = emptyList())
-    // État pour le "pull-to-refresh"
     var isRefreshing by remember { mutableStateOf(false) }
+    var showMorePopular by remember { mutableStateOf(false) }
 
-    // Lancer la requête dès l’affichage
     LaunchedEffect(Unit) {
         videoViewModel.fetchAllVideos()
     }
 
-    // SwipeRefreshState de Accompanist
+    if (videosState.value.isEmpty()) {
+        FullScreenLoadingAnimation()
+        return
+    }
+
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
-
-    // Tri des vidéos selon "order"
     val sortedVideos = videosState.value.sortedBy { it.order }
+    val mentorVideos = sortedVideos.filter { it.mentor_email == userInfo?.mentor_email }
+    Log.d("ELIMUMENTOR", "Lecture du mentor: ${userInfo?.mentor_email}")
+    val trackVideos = mentorVideos.filter { it.category.equals(userInfo?.track, ignoreCase = true) }
 
-    // Gestion du champ de recherche
     var searchQuery by remember { mutableStateOf("") }
+    var showSuggestions by remember { mutableStateOf(false) }
+    val suggestions = if (searchQuery.isNotEmpty()) {
+        trackVideos.filter { it.title.contains(searchQuery, ignoreCase = true) }
+    } else emptyList()
 
-    // Filtrer les vidéos par titre
-    val filteredVideos = if (searchQuery.isBlank()) sortedVideos
-    else sortedVideos.filter { it.title.contains(searchQuery, ignoreCase = true) }
+    val filteredVideos = if (searchQuery.isBlank()) trackVideos
+    else trackVideos.filter { it.title.contains(searchQuery, ignoreCase = true) }
 
-    // Filtrer les vidéos correspondant au track de l'utilisateur (basé sur la catégorie)
-    val trackVideos = filteredVideos.filter { it.category.equals(userInfo?.track, ignoreCase = true) }
+    val popularVideos = if (showMorePopular) {
+        filteredVideos.filter { it.stars > 3.5 }
+    } else {
+        filteredVideos.take(3)
+    }
+    val recommendedVideos = if (showMorePopular) {
+        emptyList()
+    } else {
+        filteredVideos.drop(3)
+    }
 
-    // Dans la section "Populaires" on affiche les 3 premières vidéos du track
-    val popularVideos = trackVideos.take(3)
-    // Et dans "Pour vous" le reste
-    val recommendedVideos = trackVideos.drop(3)
-
-    // Détection du type d’appareil (téléphone vs tablette)
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
     val coroutineScope = rememberCoroutineScope()
 
-    // Fond sombre
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFF1B1B1B)
+        color = MaterialTheme.colorScheme.background
     ) {
         Scaffold { innerPadding ->
-            // Intégration du SwipeRefresh
             SwipeRefresh(
                 state = swipeRefreshState,
                 onRefresh = {
-                    // Démarrer l'actualisation
                     isRefreshing = true
                     videoViewModel.fetchAllVideos()
-                    // Simulation d'un délai de rafraîchissement (ou attendre la fin de la requête)
                     coroutineScope.launch {
                         delay(1000)
                         isRefreshing = false
@@ -106,22 +144,68 @@ fun CourseScreen(
                         .fillMaxSize()
                         .padding(innerPadding)
                 ) {
-                    // Champ de recherche
                     OutlinedTextField(
                         value = searchQuery,
-                        onValueChange = { searchQuery = it },
+                        onValueChange = {
+                            searchQuery = it
+                            showSuggestions = it.isNotEmpty()
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        label = { Text("Chercher un cours", color = Color.Gray) },
-                        shape = RoundedCornerShape(50.dp)
+                        label = {
+                            Text(
+                                "Chercher un cours",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        shape = RoundedCornerShape(50.dp),
+                        singleLine = true,
+                        maxLines = 1
                     )
+                    if (showSuggestions && suggestions.isNotEmpty()) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .padding(bottom = 8.dp),
+                            elevation = CardDefaults.cardElevation(4.dp)
+                        ) {
+                            LazyColumn {
+                                items(suggestions) { suggestion ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                searchQuery = suggestion.title
+                                                showSuggestions = false
+                                            }
+                                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        AsyncImage(
+                                            model = "https://img.youtube.com/vi/${suggestion.youtube_url}/default.jpg",
+                                            contentDescription = "Miniature de ${suggestion.title}",
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .clip(RoundedCornerShape(4.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                            text = suggestion.title,
+                                            color = MaterialTheme.colorScheme.onBackground
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
 
-                    // Section "Populaires"
                     SectionTitle(
                         title = "Populaires",
-                        onVoirPlus = { /* Action "voir plus" si nécessaire */ },
-                        textColor = Color.White
+                        onVoirPlus = { navController.navigate("screenVideoPopulare") },
+                        textColor = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     LazyRow(
@@ -135,41 +219,40 @@ fun CourseScreen(
                             }
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    // Section "Pour vous" : affiche les vidéos correspondant au track de l'utilisateur
-                    SectionTitle(
-                        title = "Pour vous",
-                        onVoirPlus = { /* Action "voir plus" si nécessaire */ },
-                        textColor = Color.White
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    if (isTablet) {
-                        // Affichage en grille sur tablette
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(2),
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(recommendedVideos) { video ->
-                                VideoGridItem(video = video) {
-                                    navController.navigate("videoDetail/${video.id}")
+                    if (recommendedVideos.isNotEmpty()) {
+                        SectionTitle(
+                            title = "Pour vous",
+                            onVoirPlus = {
+                                navController.navigate("screenVideoTrack/${userInfo?.track}")
+                            },
+                            textColor = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        if (isTablet) {
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(2),
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(recommendedVideos) { video ->
+                                    VideoGridItem(video = video) {
+                                        navController.navigate("videoDetail/${video.id}")
+                                    }
                                 }
                             }
-                        }
-                    } else {
-                        // Affichage en liste sur téléphone
-                        LazyColumn(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp)
-                        ) {
-                            items(recommendedVideos) { video ->
-                                VideoRowItem(video = video) {
-                                    navController.navigate("videoDetail/${video.id}")
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                contentPadding = PaddingValues(horizontal = 16.dp)
+                            ) {
+                                items(recommendedVideos) { video ->
+                                    VideoRowItem(video = video) {
+                                        navController.navigate("videoDetail/${video.id}")
+                                    }
                                 }
                             }
                         }
@@ -180,12 +263,30 @@ fun CourseScreen(
     }
 }
 
+/** Animation Lottie de chargement en plein écran */
+@Composable
+fun FullScreenLoadingAnimation() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        val composition by rememberLottieComposition(
+            LottieCompositionSpec.RawRes(R.raw.loading)
+        )
+        LottieAnimation(
+            composition = composition,
+            iterations = LottieConstants.IterateForever,
+            modifier = Modifier.size(150.dp)
+        )
+    }
+}
+
 /** Titre de section avec lien "voir plus" */
 @Composable
 fun SectionTitle(
     title: String,
     onVoirPlus: () -> Unit,
-    textColor: Color = Color.White
+    textColor: Color = MaterialTheme.colorScheme.onBackground
 ) {
     Row(
         modifier = Modifier
@@ -217,7 +318,7 @@ fun VideoCardPopular(video: Video, onClick: () -> Unit) {
             .width(300.dp)
             .height(170.dp)
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
@@ -226,7 +327,6 @@ fun VideoCardPopular(video: Video, onClick: () -> Unit) {
                     .height(70.dp)
                     .background(Color.LightGray)
             ) {
-                // Affichage de la miniature avec animation Lottie pendant le chargement
                 SubcomposeAsyncImage(
                     model = "https://img.youtube.com/vi/${video.youtube_url}/hqdefault.jpg",
                     contentDescription = "Miniature de ${video.title}",
@@ -240,29 +340,58 @@ fun VideoCardPopular(video: Video, onClick: () -> Unit) {
                 }
             }
             Column(modifier = Modifier.padding(8.dp)) {
-                Text(
-                    text = video.title,
+                ExpandableTitle(
+                    title = video.title,
+                    maxLength = 15,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onBackground
                 )
-                // Ligne affichant la note juste en dessous du titre
+                // Ligne d'affichage des étoiles suivie du nombre de vues
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Note : ${"%.1f".format(video.stars)}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White,
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
                     Rating(rating = video.stars)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = Icons.Default.Visibility,
+                        contentDescription = "Vues",
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "${video.progresses.size}", // Assurez-vous que 'views' est une propriété de votre entité Video
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
-                Text(
-                    text = "Chapitre : ${video.order}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
-                )
+                // Ligne d'affichage du numéro de cours et de la catégorie avec icônes
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.VideoLibrary,
+                        contentDescription = "Icône vidéo",
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Cours numéro : ${video.order}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = Icons.Default.Category,
+                        contentDescription = "Catégorie",
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = video.category,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         }
     }
@@ -300,27 +429,58 @@ fun VideoRowItem(video: Video, onClick: () -> Unit) {
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = video.title,
+            ExpandableTitle(
+                title = video.title,
+                maxLength = 15,
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onBackground
             )
-            // Afficher la note juste en dessous du titre
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "Note : ${"%.1f".format(video.stars)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White,
-                    modifier = Modifier.padding(end = 4.dp)
-                )
+            // Ligne d'affichage des étoiles suivie du nombre de vues
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Rating(rating = video.stars)
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Default.Visibility,
+                    contentDescription = "Vues",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "${video.progresses.size}",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
-            Text(
-                text = "Catégorie : ${video.category}",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
-            )
+            // Ligne d'affichage du numéro de cours et de la catégorie
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.VideoLibrary,
+                    contentDescription = "Icône vidéo",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Cours numéro : ${video.order}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Default.Category,
+                    contentDescription = "Catégorie",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = video.category,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 }
@@ -334,7 +494,7 @@ fun VideoGridItem(video: Video, onClick: () -> Unit) {
             .fillMaxWidth()
             .aspectRatio(16f / 9f)
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column {
             Box(
@@ -355,17 +515,40 @@ fun VideoGridItem(video: Video, onClick: () -> Unit) {
                 }
             }
             Column(modifier = Modifier.padding(8.dp)) {
-                Text(
-                    text = video.title,
+                ExpandableTitle(
+                    title = video.title,
+                    maxLength = 15,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onBackground
                 )
-                Text(
-                    text = "Catégorie : ${video.category}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
+                // Affichage du numéro de cours et de la catégorie avec icônes
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.VideoLibrary,
+                        contentDescription = "Icône vidéo",
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Cours numéro : ${video.order}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = Icons.Default.Category,
+                        contentDescription = "Catégorie",
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = video.category,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             }
         }
     }

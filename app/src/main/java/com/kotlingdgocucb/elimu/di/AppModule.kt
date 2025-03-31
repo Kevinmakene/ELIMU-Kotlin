@@ -11,6 +11,8 @@ import com.kotlingdgocucb.elimu.data.repository.ElimuRepository
 import com.kotlingdgocucb.elimu.data.repository.ElimuRepositoryImpl
 import com.kotlingdgocucb.elimu.data.repository.MentorRepository
 import com.kotlingdgocucb.elimu.data.repository.MentorRepositoryImpl
+import com.kotlingdgocucb.elimu.data.repository.ProgressRepository
+import com.kotlingdgocucb.elimu.data.repository.ProgressRepositoryImpl
 import com.kotlingdgocucb.elimu.data.repository.ReviewRepository
 import com.kotlingdgocucb.elimu.data.repository.ReviewRepositoryImpl
 import com.kotlingdgocucb.elimu.data.repository.UserRepository
@@ -29,10 +31,12 @@ import com.kotlingdgocucb.elimu.domain.usecase.GetMentorsUseCase
 import com.kotlingdgocucb.elimu.domain.usecase.GetReviewsUseCase
 import com.kotlingdgocucb.elimu.domain.usecase.GetVideoByIdUseCase
 import com.kotlingdgocucb.elimu.domain.usecase.PostReviewUseCase
+import com.kotlingdgocucb.elimu.domain.usecase.ProgressUseCase
 
 import com.kotlingdgocucb.elimu.domain.usecase.SetCurrentUserUseCase
 import com.kotlingdgocucb.elimu.ui.viewmodel.AuthentificationViewModel
 import com.kotlingdgocucb.elimu.ui.viewmodel.MentorViewModel
+import com.kotlingdgocucb.elimu.ui.viewmodel.ProgressViewModel
 import com.kotlingdgocucb.elimu.ui.viewmodel.ReviewsViewModel
 import com.kotlingdgocucb.elimu.ui.viewmodel.VideoViewModel
 import io.ktor.client.HttpClient
@@ -153,5 +157,18 @@ val appModule = module {
     // Repository et use case pour l'utilisateur
     single<UserRepository> { UserRepositoryImpl(get()) }
     single { CreateUserUseCase(get()) }
+
+
+
+
+    // Repository de progression
+    // Fournir le Repository (pour les appels réseau – Room peut être utilisé en complément si besoin)
+    single<ProgressRepository> { ProgressRepositoryImpl(get(),get()) }
+
+    // Fournir le UseCase
+    single { ProgressUseCase(get()) }
+
+    // Fournir le ViewModel
+    viewModel { ProgressViewModel(get()) }
 
 }

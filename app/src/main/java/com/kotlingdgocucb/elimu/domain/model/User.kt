@@ -12,5 +12,6 @@ data class User(
     val profile_picture_uri: String,
     val track: String,
     val mentor: String,
-    @SerialName("created_at") val createdAt: String // ou un type DateTime selon votre configuration
+    @SerialName("created_at") val createdAt: String,
+    val mentor_email : String = ""
 )

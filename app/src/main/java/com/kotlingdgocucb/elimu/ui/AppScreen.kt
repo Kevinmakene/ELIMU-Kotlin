@@ -69,8 +69,7 @@ fun AppScreen(
     val coroutineScope = rememberCoroutineScope()
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.Accueil) }
 
-    // Etat pour afficher la boîte de dialogue de déconnexion
-// Etat pour afficher la boîte de dialogue de déconnexion
+    // État pour afficher la boîte de dialogue de déconnexion
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -86,47 +85,14 @@ fun AppScreen(
                         currentDestination = destination
                         navController.navigate(destination.route)
                     },
-                    // Passe la fonction qui met showLogoutDialog à true
                     onLogoutClicked = { showLogoutDialog = true },
                     onSigninOutClicked = onSigninOutClicked
                 )
             },
             drawerState = drawerState
         ) {
-            // ... (Scaffold, contenu, etc.)
-        }
-
-        // Affichage de la boîte de dialogue
-        if (showLogoutDialog) {
-            LogoutConfirmationDialog(
-                onDismiss = { showLogoutDialog = false },
-                onConfirm = onSigninOutClicked
-            )
-        }
-    }
-
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        ModalNavigationDrawer(
-            drawerContent = {
-                ModernDrawerContent(
-                    userInfo = userInfo,
-                    textOffset = textOffset,
-                    alphaValue = alphaValue,
-                    navController = navController, // Passage du NavController
-                    onDestinationClicked = { destination ->
-                        // Pour la partie bas de navigation (ex: bottom bar)
-                        coroutineScope.launch { drawerState.close() }
-                        currentDestination = destination
-                        navController.navigate(destination.route)
-                    },
-                    onSigninOutClicked = onSigninOutClicked,
-                    onLogoutClicked = { showLogoutDialog = true }
-                )
-            },
-            drawerState = drawerState
-        ) {
             Scaffold(
+
                 topBar = {
                     CenterAlignedTopAppBar(
                         title = {
@@ -189,14 +155,15 @@ fun AppScreen(
                                         Icon(
                                             imageVector = Icons.Default.Notifications,
                                             contentDescription = "Notifications",
-                                            tint = Color.White
+                                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                                         )
                                     }
                                 }
                             }
                         },
                         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+
                         )
                     )
                 },
@@ -216,20 +183,20 @@ fun AppScreen(
                     ) {
                         Column {
                             NavigationSuiteScaffold(
+                                modifier = Modifier.height(900.dp),
                                 navigationSuiteItems = {
                                     AppDestinations.entries.forEach {
                                         item(
                                             icon = {
-                                                Icon(it.icon, it.contentDescription)
+                                                Icon(it.icon, contentDescription = it.contentDescription, modifier = Modifier.size(20.dp))
                                             },
-                                            label = { Text(it.label) },
+                                            label = { Text(it.label, style = MaterialTheme.typography.labelSmall) },
                                             selected = it == currentDestination,
                                             onClick = {
                                                 currentDestination = it
                                             }
                                         )
                                     }
-
                                 }
                             ) {
                                 when (currentDestination) {
@@ -267,7 +234,7 @@ fun ModernDrawerContent(
     userInfo: User?,
     textOffset: Float,
     alphaValue: Float,
-    navController: NavController, // Passage du NavController
+    navController: NavController,
     onDestinationClicked: (AppDestinations) -> Unit,
     onSigninOutClicked: () -> Unit,
     onLogoutClicked: () -> Unit,
@@ -344,7 +311,6 @@ fun ModernDrawerContent(
             label = { Text("Feedbacks") },
             selected = false,
             onClick = {
-                // Navigation directe via NavController
                 navController.navigate("feedback")
             },
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)

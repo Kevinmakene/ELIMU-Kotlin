@@ -46,6 +46,9 @@ const val TermsRoute = "terms"
 const val AboutRoute = "about"
 const val NotificationsRoute = "notifications"
 const val ProfileRoute = "profile"
+const val ScreenVideoPopulareRoute = "screenVideoPopulare"
+const val ScreenVideoTrackRoute = "screenVideoTrack/{track}"
+const val VideoDetailRoute = "videoDetail/{videoId}"
 
 class MainActivity : ComponentActivity() {
 
@@ -146,7 +149,10 @@ class MainActivity : ComponentActivity() {
                             selectedTrack = currentUser.value?.track ?: "",
                             onMentorChosen = { mentor ->
                                 val updatedUser = currentUser.value?.copy(mentor = mentor.name)
+                                val updatedUserMail = currentUser.value?.copy(mentor_email = mentor.email)
+
                                 viewModel.login(updatedUser)
+                                viewModel.login(updatedUserMail)
                                 navController.navigate(ConfirmProfileRoute)
                             },
                             onBack = { navController.popBackStack() },
@@ -155,7 +161,6 @@ class MainActivity : ComponentActivity() {
                     }
                     // Confirmation de profil
                     composable(ConfirmProfileRoute) {
-
                         ConfirmProfileScreen(
                             userInfo = currentUser.value,
                             onConfirm = {
@@ -193,7 +198,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable(
-                            route = "videoDetail/{videoId}",
+                            route = VideoDetailRoute,
                             arguments = listOf(navArgument("videoId") { type = NavType.IntType })
                         ) { backStackEntry ->
                             val videoId = backStackEntry.arguments?.getInt("videoId") ?: 0
@@ -202,6 +207,15 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 UserEmail = currentUser.value!!.email
                             )
+                        }
+                        // Nouvelle route pour l'écran des vidéos populaires
+                        composable(ScreenVideoPopulareRoute) {
+                            ScreenVideoPopulare(navController = navController)
+                        }
+                        // Nouvelle route pour l'écran des vidéos par track
+                        composable(ScreenVideoTrackRoute, arguments = listOf(navArgument("track") { type = NavType.StringType })) { backStackEntry ->
+                            val track = backStackEntry.arguments?.getString("track") ?: ""
+                            ScreenVideoTrack(track = track, navController = navController)
                         }
                     }
                     // Destination Notifications (accessible depuis le TopAppBar ou le Drawer)

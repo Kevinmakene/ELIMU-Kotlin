@@ -126,4 +126,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-text-google-fonts:1.6.7")
 
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.28.0")
+
+    implementation ("com.google.code.gson:gson:2.9.0")
+
+    implementation ("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.1")
 }
