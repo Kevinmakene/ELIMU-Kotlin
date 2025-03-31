@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.kotlingdgocucb.elimu">
+    package="com.kotlingdgocucb.elimuApp">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
-        android:name=".ElimuApp"
+        android:name="com.kotlingdgocucb.elimuApp.ElimuApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -22,7 +22,7 @@
 
         <!-- SplashActivity comme écran de lancement -->
         <activity
-            android:name=".ui.SplashActivity"
+            android:name="com.kotlingdgocucb.elimuApp.ui.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.Elimu.Splash">
             <intent-filter>
@@ -33,7 +33,7 @@
 
         <!-- MainActivity lancée après le splash -->
         <activity
-            android:name=".ui.MainActivity"
+            android:name="com.kotlingdgocucb.elimuApp.ui.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Elimu" />

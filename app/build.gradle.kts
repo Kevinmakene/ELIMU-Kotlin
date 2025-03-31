@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.kotlingdgocucb.elimu"
+    namespace = "com.kotlingdgocucb.elimuApp"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.kotlingdgocucb.elimu"
+        applicationId = "com.kotlingdgocucb.elimuApp"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

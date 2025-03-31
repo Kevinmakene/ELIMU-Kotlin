@@ -9,10 +9,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.kotlingdgocucb.elimu" />
-                  <option name="mobileSdkAppId" value="1:706992175373:android:c0d73bc0fbce17a5bf9844" />
-                  <option name="projectId" value="elimu-dd7a9" />
-                  <option name="projectNumber" value="706992175373" />
+                  <option name="appId" value="com.kotlingdgocucb.elimuApp" />
+                  <option name="mobileSdkAppId" value="1:547623569349:android:b44ec03b51958ac8072dac" />
+                  <option name="projectId" value="elimu-gdgocucb" />
+                  <option name="projectNumber" value="547623569349" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
