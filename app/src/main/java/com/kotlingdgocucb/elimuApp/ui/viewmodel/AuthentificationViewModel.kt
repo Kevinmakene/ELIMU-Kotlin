@@ -112,12 +112,12 @@ class AuthentificationViewModel(
                     val firebaseUser: FirebaseUser? = FirebaseAuth.getInstance().currentUser
                     val user = firebaseUser?.let {
                         User(
-                            name = it.displayName ?: "",
-                            email = it.email ?: "",
+                            name = it.displayName ?: "Pas de nom",
+                            email = it.email ?: "Pas de mail",
                             isLoggedIn = true,
                             profile_picture_uri = it.photoUrl?.toString() ?: "",
                             track = "",
-                            mentor = "",
+                            mentor_name = "",
                             id = 0,
                             createdAt = ""
                         )

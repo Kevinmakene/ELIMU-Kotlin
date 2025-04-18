@@ -11,7 +11,18 @@ data class User(
     @SerialName("is_logged_in") val isLoggedIn: Boolean,
     val profile_picture_uri: String,
     val track: String,
-    val mentor: String,
+    val level: String,
+    val mentor_name: String,
     @SerialName("created_at") val createdAt: String,
-    val mentor_email : String = ""
-)
+    val mentor_email : String = "",
+
+
+    val mentor_profileUrl: String = "",
+    val mentor_experience: String = "",
+    val mentor_description: String = "",
+    val mentor_githubUrl: String = "",
+    val mentor_linkedinUrl: String = "",
+    val mentor_xUrl: String = "",
+    val mentor_instagramUrl: String = "",
+
+    )

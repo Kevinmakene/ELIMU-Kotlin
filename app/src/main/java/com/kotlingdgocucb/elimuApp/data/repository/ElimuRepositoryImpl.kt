@@ -23,7 +23,7 @@ class ElimuRepositoryImpl(
                 preferences[PreferenceKeys.userProfilePicture] = user?.profile_picture_uri ?: ""
                 preferences[PreferenceKeys.isLoggedIn] = user?.isLoggedIn ?: false
                 preferences[PreferenceKeys.userTrack] = user?.track ?: ""
-                preferences[PreferenceKeys.userMentor] = user?.mentor ?: ""
+                preferences[PreferenceKeys.userMentor] = user?.mentor_name ?: ""
             }
             Log.d("ElimuRepositoryImpl", "Utilisateur enregistré avec succès")
             Result.Success(user)
@@ -44,8 +44,16 @@ class ElimuRepositoryImpl(
                     profile_picture_uri = preferences[PreferenceKeys.userProfilePicture] ?: "",
                     isLoggedIn = preferences[PreferenceKeys.isLoggedIn] == true,
                     track = preferences[PreferenceKeys.userTrack] ?: "",
-                    mentor = preferences[PreferenceKeys.userMentor] ?: "",
-                    createdAt = ""
+                    mentor_name = preferences[PreferenceKeys.userMentor] ?: "",
+                    createdAt = "",
+                    mentor_email = "",
+                    mentor_profileUrl = "",
+                    mentor_experience = "",
+                    mentor_description = "",
+                    mentor_githubUrl = "",
+                    mentor_linkedinUrl = "",
+                    mentor_xUrl = "",
+                    mentor_instagramUrl = ""
                 )
             }.first()
 

@@ -323,7 +323,7 @@ fun VideoCardPopular(video: Video, onClick: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(70.dp)
-                    .background(Color.LightGray)
+                    .background(Color.LightGray,shape = RoundedCornerShape(18.dp))
             ) {
                 SubcomposeAsyncImage(
                     model = "https://img.youtube.com/vi/${video.youtube_url}/hqdefault.jpg",
@@ -337,6 +337,7 @@ fun VideoCardPopular(video: Video, onClick: () -> Unit) {
                     }
                 }
             }
+
             Column(modifier = Modifier.padding(8.dp)) {
                 ExpandableTitle(
                     title = video.title,
@@ -399,6 +400,7 @@ fun VideoCardPopular(video: Video, onClick: () -> Unit) {
 @Composable
 fun VideoRowItem(video: Video, onClick: () -> Unit) {
     Row(
+
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
@@ -407,7 +409,7 @@ fun VideoRowItem(video: Video, onClick: () -> Unit) {
     ) {
         Box(
             modifier = Modifier
-                .size(70.dp)
+                .size(150.dp)
                 .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
         ) {
             SubcomposeAsyncImage(

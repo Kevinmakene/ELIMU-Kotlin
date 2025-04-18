@@ -36,6 +36,9 @@ fun AuthentificationScreen(
     onSignInClicked: () -> Unit,
     navController: NavController
 ) {
+    // Variable d'état pour simuler le chargement
+    var loading by remember { mutableStateOf(false) }
+
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         // Seuil pour distinguer tablette (>600.dp) et téléphone
         val isTablet = maxWidth > 600.dp
@@ -143,7 +146,10 @@ fun AuthentificationScreen(
                             )
                             Spacer(modifier = Modifier.height(30.dp))
                             Button(
-                                onClick = { onSignInClicked() },
+                                onClick = {
+                                    loading = true // Simule le démarrage du chargement
+                                    onSignInClicked()
+                                },
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                 shape = RoundedCornerShape(50),
                                 modifier = Modifier
@@ -154,9 +160,15 @@ fun AuthentificationScreen(
                                         alpha = alphaValue
                                     )
                             ) {
-                                // Conserver l'icône Google si souhaité
-                                // Vous pouvez aussi remplacer par une animation Lottie si besoin
-                                Text("Se connecter avec Google", color = Color.White)
+                                if (loading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        strokeWidth = 3.dp
+                                    )
+                                } else {
+                                    Text("Se connecter avec Google", color = Color.White)
+                                }
                             }
                         }
                     }
@@ -210,7 +222,10 @@ fun AuthentificationScreen(
                         )
                         Spacer(modifier = Modifier.height(30.dp))
                         Button(
-                            onClick = { onSignInClicked() },
+                            onClick = {
+                                loading = true // Simule le démarrage du chargement
+                                onSignInClicked()
+                            },
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                             shape = RoundedCornerShape(50),
                             modifier = Modifier
@@ -221,13 +236,21 @@ fun AuthentificationScreen(
                                     alpha = alphaValue
                                 )
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_google_logo),
-                                contentDescription = "Icône Google",
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Se connecter avec Google", color = Color.White)
+                            if (loading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    strokeWidth = 3.dp
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_google_logo),
+                                    contentDescription = "Icône Google",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Se connecter avec Google", color = Color.White)
+                            }
                         }
                     }
                 }

@@ -13,6 +13,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavType
@@ -50,6 +51,12 @@ const val ProfileRoute = "profile"
 const val ScreenVideoPopulareRoute = "screenVideoPopulare"
 const val ScreenVideoTrackRoute = "screenVideoTrack/{track}"
 const val VideoDetailRoute = "videoDetail/{videoId}"
+
+// Nouvelles routes pour les contacts
+const val ContactListRoute = "contactList"
+const val MentorScreenRoute = "mentorScreen"
+const val IAScreenRoute = "iaScreen"
+
 
 class MainActivity : ComponentActivity() {
 
@@ -106,48 +113,59 @@ class MainActivity : ComponentActivity() {
                             onSignInClicked = {
                                 lifecycleScope.launch {
                                     try {
-                                        // Tentative de récupération des credentials
                                         val credentialResponse = credentialManager.getCredential(
                                             request = request,
                                             context = this@MainActivity
                                         )
-                                        // Si la récupération réussit, on traite la connexion
                                         handleSignIn(
                                             viewModel = viewModel,
                                             response = credentialResponse,
                                             onSignInUser = { user ->
-                                                viewModel.login(user)
-                                                navController.navigate(ScreenTrackRoute) {
-                                                    popUpTo(OnboardingRoute) { inclusive = true }
+                                                // Dès la connexion réussie, navigation immédiate
+                                                if (user != null) {
+                                                    navController.navigate(ScreenTrackRoute) {
+
+                                                    }
+                                                } else {
+                                                    // Gérer l'erreur de connexion si nécessaire
                                                 }
                                             }
                                         )
-                                    } catch (e: androidx.credentials.exceptions.GetCredentialCancellationException) {
-                                        // L'utilisateur a annulé la connexion
-                                        Log.e("ElIMUDEBUG", "Connexion annulée par l'utilisateur", e)
-                                        // Affichage d'un message utilisateur (ici avec Toast, mais tu peux utiliser un Snackbar ou autre)
-                                        Toast.makeText(this@MainActivity, "Connexion annulée", Toast.LENGTH_SHORT).show()
-                                        // Ici, tu peux rediriger l'utilisateur vers l'écran de connexion ou laisser la page actuelle
-                                        // Par exemple, pour revenir à l'écran d'authentification :
+                                    } catch (e: GetCredentialCancellationException) {
+                                        Log.e(
+                                            "ElIMUDEBUG",
+                                            "Connexion annulée par l'utilisateur",
+                                            e
+                                        )
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            "Connexion annulée",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                         navController.navigate(AuthentificationRoute) {
                                             popUpTo(AuthentificationRoute) { inclusive = true }
+
                                         }
                                     } catch (e: Exception) {
-                                        // Gestion des autres exceptions potentielles
                                         Log.e("ElIMUDEBUG", "Erreur lors de la connexion", e)
-                                        Toast.makeText(this@MainActivity, "Erreur lors de la connexion", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            "Erreur lors de la connexion",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 }
-
                             },
                             navController = navController
                         )
                     }
+
                     // Écran principal pour la sélection de track
                     composable(ScreenTrackRoute) {
                         LaunchedEffect(currentUser.value) {
                             if (currentUser.value == null) {
                                 navController.navigate(AuthentificationRoute) {
+
                                     popUpTo(ScreenTrackRoute) { inclusive = true }
                                 }
                             }
@@ -166,11 +184,20 @@ class MainActivity : ComponentActivity() {
                         ChooseMentorScreen(
                             selectedTrack = currentUser.value?.track ?: "",
                             onMentorChosen = { mentor ->
-                                val updatedUser = currentUser.value?.copy(mentor = mentor.name)
-                                val updatedUserMail = currentUser.value?.copy(mentor_email = mentor.email)
-
+                                val updatedUser = currentUser.value?.copy(
+                                    mentor_name = mentor.name,
+                                    mentor_email = mentor.email,
+                                    mentor_experience = mentor.experience,
+                                    mentor_description = mentor.description,
+                                    mentor_xUrl = mentor.xUrl,
+                                    mentor_githubUrl = mentor.githubUrl,
+                                    mentor_profileUrl = mentor.profileUrl,
+                                    mentor_linkedinUrl = mentor.linkedinUrl,
+                                    mentor_instagramUrl = mentor.instagramUrl
+                                )
                                 viewModel.login(updatedUser)
-                                viewModel.login(updatedUserMail)
+
+                                Log.d("currentUser", "${currentUser}")
                                 navController.navigate(ConfirmProfileRoute)
                             },
                             onBack = { navController.popBackStack() },
@@ -184,7 +211,7 @@ class MainActivity : ComponentActivity() {
                             onConfirm = {
                                 viewModel.createUser(currentUser.value)
                                 navController.navigate(AppScreenRoute) {
-                                    popUpTo(navController.graph.id) { inclusive = true }
+
                                 }
                             },
                             onBack = { },
@@ -196,16 +223,21 @@ class MainActivity : ComponentActivity() {
                         LaunchedEffect(currentUser.value) {
                             if (currentUser.value == null) {
                                 navController.navigate(AuthentificationRoute) {
-                                    popUpTo(ConfirmProfileRoute) { inclusive = true }
+                                    popUpTo(navController.graph.id) { inclusive = true }
                                 }
                             }
                         }
+
+
+
                         AppScreen(
                             userInfo = currentUser.value,
-                            notificationsCount = 3, // Exemple de valeur, à adapter
+                            notificationsCount = 3, // Exemple
                             onSigninOutClicked = { viewModel.logout() },
-                            navController = navController
-                        )
+                            navController = navController,
+
+                            )
+
                     }
                     // Sous-graphe pour les vidéos
                     navigation(startDestination = "videoList", route = VideosRoute) {
@@ -231,7 +263,10 @@ class MainActivity : ComponentActivity() {
                             ScreenVideoPopulare(navController = navController)
                         }
                         // Nouvelle route pour l'écran des vidéos par track
-                        composable(ScreenVideoTrackRoute, arguments = listOf(navArgument("track") { type = NavType.StringType })) { backStackEntry ->
+                        composable(
+                            ScreenVideoTrackRoute,
+                            arguments = listOf(navArgument("track") { type = NavType.StringType })
+                        ) { backStackEntry ->
                             val track = backStackEntry.arguments?.getString("track") ?: ""
                             ScreenVideoTrack(track = track, navController = navController)
                         }
@@ -271,6 +306,19 @@ class MainActivity : ComponentActivity() {
                         AboutScreen(
                             onBack = { navController.popBackStack() }
                         )
+                    }// Nouvelles routes pour les contacts
+                    composable(ContactListRoute) {
+                        ContactListScreen(
+                            navController = navController,
+                            user = currentUser.value
+                        )
+                    }
+                    composable(MentorScreenRoute) {
+                        MentorScreen(navController = navController, mentor = currentUser.value)
+                    }
+                    composable(IAScreenRoute) {
+                        IAScreen(navController = navController)
+
                     }
                 }
             }
@@ -287,7 +335,8 @@ class MainActivity : ComponentActivity() {
             is CustomCredential -> {
                 if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                     try {
-                        val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                        val googleIdTokenCredential =
+                            GoogleIdTokenCredential.createFrom(credential.data)
                         val idToken = googleIdTokenCredential.idToken
                         viewModel.firebaseSignInWithGoogle(idToken) { success, errorMsg, user ->
                             if (success) {
@@ -306,13 +355,13 @@ class MainActivity : ComponentActivity() {
                     Log.e("ElIMUDEBUG", "Type de credential inconnu")
                 }
             }
+
             else -> {
                 onSignInUser(null)
                 Log.e("ElIMUDEBUG", "Type de credential non supporté")
             }
         }
     }
-
 
 
 }

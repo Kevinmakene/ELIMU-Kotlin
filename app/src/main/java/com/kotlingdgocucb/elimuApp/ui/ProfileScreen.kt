@@ -98,7 +98,7 @@ fun ProfileScreen(
     var name by remember { mutableStateOf(userInfo?.name ?: "") }
     var email by remember { mutableStateOf(userInfo?.email ?: "") }
     var track by remember { mutableStateOf(userInfo?.track ?: "") }
-    var mentor by remember { mutableStateOf(userInfo?.mentor ?: "") }
+    var mentor by remember { mutableStateOf(userInfo?.mentor_name ?: "") }
 
     // Variables d'état pour le plein écran
     var showCoverFullScreen by remember { mutableStateOf(false) }
@@ -222,16 +222,24 @@ fun ProfileScreen(
                             val updatedUser = userInfo?.copy(
                                 name = name,
                                 track = track,
-                                mentor = mentor
+                                mentor_name = mentor
                             ) ?: User(
                                 name = name,
                                 email = email,
                                 isLoggedIn = true,
                                 profile_picture_uri = "",
                                 track = track,
-                                mentor = mentor,
                                 id = 0,
-                                createdAt = ""
+                                createdAt = "",
+                                mentor_name = "",
+                                mentor_email = "",
+                                mentor_profileUrl = "",
+                                mentor_experience = "",
+                                mentor_description = "",
+                                mentor_githubUrl = "",
+                                mentor_linkedinUrl = "",
+                                mentor_xUrl = "",
+                                mentor_instagramUrl = ""
                             )
                             onUpdateProfile(updatedUser)
                         },

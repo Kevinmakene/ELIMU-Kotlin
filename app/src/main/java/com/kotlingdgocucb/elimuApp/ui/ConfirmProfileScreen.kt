@@ -146,7 +146,7 @@ fun ConfirmProfileScreen(
                         Text("Noms : ${userInfo?.name}", fontSize = 16.sp)
                         Text("Mail : ${userInfo?.email}", fontSize = 16.sp)
                         Text("Track : ${userInfo?.track}", fontSize = 16.sp)
-                        Text("Mentor : ${userInfo?.mentor}", fontSize = 16.sp)
+                        Text("Mentor : ${userInfo?.mentor_name}", fontSize = 16.sp)
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     // Avertissement
@@ -226,7 +226,7 @@ fun ConfirmProfileScreen(
                         Text("Noms : ${userInfo?.name}", fontSize = 18.sp)
                         Text("Courriel : ${userInfo?.email}", fontSize = 18.sp)
                         Text("Track : ${userInfo?.track}", fontSize = 18.sp)
-                        Text("Mentor : ${userInfo?.mentor}", fontSize = 18.sp)
+                        Text("Mentor : ${userInfo?.mentor_name}", fontSize = 18.sp)
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(

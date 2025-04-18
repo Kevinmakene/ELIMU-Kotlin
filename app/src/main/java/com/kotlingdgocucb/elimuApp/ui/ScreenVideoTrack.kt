@@ -148,8 +148,8 @@ fun ScreenVideoTrack(
                     }
                 },
                 colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+//                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+//                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             )
         }

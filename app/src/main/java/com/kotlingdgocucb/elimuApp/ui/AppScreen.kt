@@ -44,6 +44,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppScreen(
+
     userInfo: User?,
     notificationsCount: Int, // Nombre de notifications
     onSigninOutClicked: () -> Unit,
@@ -204,7 +205,9 @@ fun AppScreen(
                                         navController = navController,
                                         userInfo = userInfo
                                     )
-                                    AppDestinations.Message -> MessageScreen()
+                                    AppDestinations.Message -> MessageScreen(
+                                        navController = navController,
+                                        user = userInfo)
                                 }
                             }
                         }
@@ -296,7 +299,7 @@ fun ModernDrawerContent(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
                 Text(
-                    text = "Mentor : ${userInfo?.mentor ?: "Non défini"}",
+                    text = "Mentor : ${userInfo?.mentor_name ?: "Non défini"}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimary
                 )
