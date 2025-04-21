@@ -4,6 +4,8 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.room.Room
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 import com.kotlingdgocucb.elimuApp.data.datasource.local.datastore.dataStore
 import com.kotlingdgocucb.elimuApp.data.datasource.local.room.ElimuDao
 import com.kotlingdgocucb.elimuApp.data.datasource.local.room.ElimuDatabase
@@ -11,6 +13,8 @@ import com.kotlingdgocucb.elimuApp.data.repository.ElimuRepository
 import com.kotlingdgocucb.elimuApp.data.repository.ElimuRepositoryImpl
 import com.kotlingdgocucb.elimuApp.data.repository.MentorRepository
 import com.kotlingdgocucb.elimuApp.data.repository.MentorRepositoryImpl
+import com.kotlingdgocucb.elimuApp.data.repository.MessageRepository
+import com.kotlingdgocucb.elimuApp.data.repository.MessageRepositoryImpl
 import com.kotlingdgocucb.elimuApp.data.repository.ProgressRepository
 import com.kotlingdgocucb.elimuApp.data.repository.ProgressRepositoryImpl
 import com.kotlingdgocucb.elimuApp.data.repository.ReviewRepository
@@ -19,10 +23,13 @@ import com.kotlingdgocucb.elimuApp.data.repository.UserRepository
 import com.kotlingdgocucb.elimuApp.data.repository.UserRepositoryImpl
 import com.kotlingdgocucb.elimuApp.data.repository.VideoRepository
 import com.kotlingdgocucb.elimuApp.data.repository.VideoRepositoryImpl
+import com.kotlingdgocucb.elimuApp.domain.model.User
+import com.kotlingdgocucb.elimuApp.domain.usecase.CreateChatUseCase
 
 import com.kotlingdgocucb.elimuApp.domain.usecase.CreateUserUseCase
 import com.kotlingdgocucb.elimuApp.domain.usecase.GetAllVideosUseCase
 import com.kotlingdgocucb.elimuApp.domain.usecase.GetAverageRatingUseCase
+import com.kotlingdgocucb.elimuApp.domain.usecase.GetChatMessageUseCase
 
 
 import com.kotlingdgocucb.elimuApp.domain.usecase.GetCurrentUserUseCase
@@ -30,12 +37,15 @@ import com.kotlingdgocucb.elimuApp.domain.usecase.GetMentorsUseCase
 
 import com.kotlingdgocucb.elimuApp.domain.usecase.GetReviewsUseCase
 import com.kotlingdgocucb.elimuApp.domain.usecase.GetVideoByIdUseCase
+import com.kotlingdgocucb.elimuApp.domain.usecase.MarkMessageAsReadUseCase
 import com.kotlingdgocucb.elimuApp.domain.usecase.PostReviewUseCase
 import com.kotlingdgocucb.elimuApp.domain.usecase.ProgressUseCase
+import com.kotlingdgocucb.elimuApp.domain.usecase.SendMessageUseCase
 
 import com.kotlingdgocucb.elimuApp.domain.usecase.SetCurrentUserUseCase
 import com.kotlingdgocucb.elimuApp.ui.viewmodel.AuthentificationViewModel
 import com.kotlingdgocucb.elimuApp.ui.viewmodel.MentorViewModel
+import com.kotlingdgocucb.elimuApp.ui.viewmodel.MessageViewModel
 import com.kotlingdgocucb.elimuApp.ui.viewmodel.ProgressViewModel
 import com.kotlingdgocucb.elimuApp.ui.viewmodel.ReviewsViewModel
 import com.kotlingdgocucb.elimuApp.ui.viewmodel.VideoViewModel
@@ -110,7 +120,11 @@ val appModule = module {
         }
     }
 
+    single<MessageRepository>{
+        MessageRepositoryImpl(get())
+}
 
+    single{FirebaseFirestore.getInstance()}
 
     // Provide Room database
     single {
@@ -129,7 +143,7 @@ val appModule = module {
     // Provide MentorRepository implementation (Firebase)
     single<MentorRepository> { MentorRepositoryImpl(get()) }
 
-
+    single{Firebase}
 
     // Provide Mentor ViewModel
     viewModelOf(::MentorViewModel)
@@ -148,12 +162,18 @@ val appModule = module {
     factory { GetReviewsUseCase(get()) }
     factory { GetAverageRatingUseCase(get()) }
     factory { PostReviewUseCase(get()) }
+    // Fournir les UseCases pour les message
+    factory{MarkMessageAsReadUseCase(get())}
+    factory{GetChatMessageUseCase(get())}
+    factory{SendMessageUseCase(get())}
+    factory{CreateChatUseCase(get())}
 
     // Fournir le ViewModel pour les vidéos
     viewModel { VideoViewModel(get(), get()) }
     // Fournir le ViewModel pour les reviews
     viewModel { ReviewsViewModel(get(), get(), get()) }
     single<ReviewRepository> { ReviewRepositoryImpl(get(),get()) }
+    viewModelOf(::MessageViewModel)
 
     // Repository et use case pour l'utilisateur
     single<UserRepository> { UserRepositoryImpl(get()) }

@@ -119,7 +119,9 @@ class AuthentificationViewModel(
                             track = "",
                             mentor_name = "",
                             id = 0,
-                            createdAt = ""
+                            createdAt = "",
+                            level = ""
+
                         )
                     }
                     Log.d("ElIMUDEBUG", "Connexion réussie pour ${firebaseUser?.email}")

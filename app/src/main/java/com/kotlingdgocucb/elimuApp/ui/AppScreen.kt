@@ -38,6 +38,7 @@ import com.airbnb.lottie.compose.*
 import com.kotlingdgocucb.elimuApp.R
 import com.kotlingdgocucb.elimuApp.domain.model.User
 import com.kotlingdgocucb.elimuApp.domain.utils.AppDestinations
+import com.kotlingdgocucb.elimuApp.ui.viewmodel.MessageViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -48,7 +49,9 @@ fun AppScreen(
     userInfo: User?,
     notificationsCount: Int, // Nombre de notifications
     onSigninOutClicked: () -> Unit,
-    navController: NavController
+    navController: NavController,
+    viewModel: MessageViewModel
+
 ) {
     // Animation d'entrée pour le TopAppBar
     var startAnimation by remember { mutableStateOf(false) }
@@ -207,7 +210,9 @@ fun AppScreen(
                                     )
                                     AppDestinations.Message -> MessageScreen(
                                         navController = navController,
-                                        user = userInfo)
+                                        user = userInfo,
+                                        viewModel = viewModel
+                                    )
                                 }
                             }
                         }

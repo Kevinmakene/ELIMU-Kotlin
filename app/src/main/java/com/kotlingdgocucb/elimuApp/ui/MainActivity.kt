@@ -28,8 +28,10 @@ import com.google.firebase.FirebaseApp
 import com.kotlingdgocucb.elimuApp.domain.model.User
 import com.kotlingdgocucb.elimuApp.ui.screens.introScreen.OnboardingScreen
 import com.kotlingdgocucb.elimuApp.ui.theme.ElimuTheme
+import com.kotlingdgocucb.elimuApp.ui.viewmodel.MessageViewModel
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import org.koin.androidx.compose.koinViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 // Définition des routes
@@ -75,6 +77,7 @@ class MainActivity : ComponentActivity() {
             val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
             val currentUser = viewModel.currentUser.collectAsStateWithLifecycle()
             val navController = rememberNavController()
+            val messageViewModel : MessageViewModel= koinViewModel()
 
             // Maintient l'écran de démarrage tant que le chargement est actif
             splashScreen.setKeepOnScreenCondition { isLoading.value }
@@ -235,7 +238,7 @@ class MainActivity : ComponentActivity() {
                             notificationsCount = 3, // Exemple
                             onSigninOutClicked = { viewModel.logout() },
                             navController = navController,
-
+                            viewModel = messageViewModel
                             )
 
                     }
@@ -310,11 +313,12 @@ class MainActivity : ComponentActivity() {
                     composable(ContactListRoute) {
                         ContactListScreen(
                             navController = navController,
-                            user = currentUser.value
+                            user = currentUser.value,
+                            viewModel = messageViewModel
                         )
                     }
                     composable(MentorScreenRoute) {
-                        MentorScreen(navController = navController, mentor = currentUser.value)
+                        MentorScreen(navController = navController, mentor = currentUser.value, viewModel = messageViewModel)
                     }
                     composable(IAScreenRoute) {
                         IAScreen(navController = navController)
