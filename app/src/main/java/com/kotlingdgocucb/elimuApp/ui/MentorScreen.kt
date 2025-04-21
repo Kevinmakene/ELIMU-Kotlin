@@ -9,12 +9,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ContentAlpha
@@ -33,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.kotlingdgocucb.elimuApp.domain.model.User
+import com.kotlingdgocucb.elimuApp.ui.viewmodel.MessageViewModel
 import kotlinx.coroutines.launch
 
 data class Message(
@@ -45,20 +45,11 @@ data class Message(
 @Composable
 fun MentorScreen(
     navController: NavController,
-    mentor: User?
+    mentor: User?,
+    viewModel: MessageViewModel
 ) {
     // Liste mutable de messages pour la démo
-    var messages by remember {
-        mutableStateOf(
-            listOf(
-                Message("${mentor?.mentor_name}", "Hey, ça va ?", isMe = false),
-                Message("Vous", "Bien, et toi ?", isMe = true),
-                Message("${mentor?.mentor_name}", "Je vais bien, merci.", isMe = false),
-                Message("${mentor?.mentor_name}", "Bonsoir", isMe = false),
-                Message("Vous", "J'ai un problème, tu peux m'aider ?", isMe = true)
-            )
-        )
-    }
+    var messages =viewModel.message
 
     // Pour gérer le scroll automatique vers le dernier message
     val listState = rememberLazyListState()
@@ -75,16 +66,21 @@ fun MentorScreen(
         bottomBar = {
             MessageInputBar(
                 onMessageSent = { newMessage ->
-                    messages = messages + newMessage
+                    viewModel.sendMessage(
+                        content = newMessage,
+                        senderId = mentor?.email ?: "",
+                        receiverId = mentor?.mentor_email ?: ""
+                    )
                     scope.launch {
                         // Scroll vers le dernier message
-                        listState.animateScrollToItem(messages.size - 1)
+                        listState.animateScrollToItem(messages.value.size - 1)
                     }
                 }
             )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
+
         LazyColumn(
             state = listState,
             reverseLayout = false,
@@ -93,15 +89,22 @@ fun MentorScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            itemsIndexed(messages) { index, message ->
+            itemsIndexed(viewModel.message.value) { index, message ->
                 AnimatedVisibility(
                     visible = true,
                     enter = slideInVertically(initialOffsetY = { it / 2 }) + expandVertically()
                 ) {
-                    ChatBubble(message = message)
+                    val isMe= if (mentor!!.email==message.senderId) true else false
+                    // Affichage de chaque message
+                    ChatBubble(message = Message(
+                       senderName =  message.senderId,
+                       content =  message.message,
+                       isMe =  isMe
+                     )
+                    )
                 }
                 // Ajout d'un espace entre les messages
-                if (index < messages.size - 1) {
+                if (index < messages.collectAsState().value.size - 1) {
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
@@ -114,7 +117,8 @@ fun MentorScreen(
 fun MentorTopBar(
     mentor: User?,
     onInfoClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+
 ) {
     var infoClicked by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -215,7 +219,7 @@ fun ChatBubble(message: Message) {
 
 @Composable
 fun MessageInputBar(
-    onMessageSent: (Message) -> Unit
+    onMessageSent: (String) -> Unit
 ) {
     var textValue by remember { mutableStateOf("") }
     var isFocused by remember { mutableStateOf(false) }
@@ -262,7 +266,7 @@ fun MessageInputBar(
             Button(
                 onClick = {
                     if (textValue.isNotBlank()) {
-                        onMessageSent(Message("Vous", textValue, isMe = true))
+                        onMessageSent(textValue)
                         textValue = ""
                         focusManager.clearFocus() // Permet de masquer le clavier
                     }

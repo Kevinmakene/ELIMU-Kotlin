@@ -114,6 +114,7 @@ androidx-compose-runtime-livedata = { module = "androidx.compose.runtime:runtime
 androidx-constraintlayout-compose = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraintLayoutCompose" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabaseVersion" }
+firebase-firestore ={module="com.google.firebase:firebase-firestore-ktx"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

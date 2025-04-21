@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.play.services.auth) // Google Sign-In
     implementation(libs.firebase.database) // Vérifiez si ce doublon est nécessaire
+    implementation(libs.firebase.firestore)
 
     // AndroidX et Compose
     implementation(libs.androidx.core.ktx)

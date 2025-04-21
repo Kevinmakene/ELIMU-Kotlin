@@ -239,7 +239,8 @@ fun ProfileScreen(
                                 mentor_githubUrl = "",
                                 mentor_linkedinUrl = "",
                                 mentor_xUrl = "",
-                                mentor_instagramUrl = ""
+                                mentor_instagramUrl = "",
+                                level = ""
                             )
                             onUpdateProfile(updatedUser)
                         },

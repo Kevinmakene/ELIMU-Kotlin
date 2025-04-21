@@ -12,20 +12,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.kotlingdgocucb.elimuApp.domain.model.User
+import com.kotlingdgocucb.elimuApp.ui.theme.ElimuTheme
+import com.kotlingdgocucb.elimuApp.ui.viewmodel.MessageViewModel
 
 data class Contact(val name: String, val email: String)
 
 @Composable
-fun MessageScreen(navController: NavController, user: User?) {
-    ContactListScreen(navController = navController, user = user)
+fun MessageScreen(navController: NavController, user: User?,viewModel : MessageViewModel) {
+    ContactListScreen(navController = navController, user = user, viewModel = viewModel)
 }
 
+
 @Composable
-fun ContactListScreen(navController: NavController, user: User?) {
+fun ContactListScreen(navController:NavController , user: User?,viewModel: MessageViewModel) {
     // Liste de contacts : Mentor et IA
     val contacts = listOf(
         Contact("${user?.mentor_name}", "${user?.mentor_email}"),
@@ -46,6 +50,8 @@ fun ContactListScreen(navController: NavController, user: User?) {
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
                     .clickable {
+                        viewModel.getChat( user!!)
+
                         if (contact.name == "${user?.mentor_name}")
                             navController.navigate("mentorScreen")
                         else
