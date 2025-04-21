@@ -83,30 +83,7 @@ class MessageRepositoryImpl(
         }
     }
 
-    // Fonction pour créer un chat (si nécessaire)
-    override suspend fun createChat(chatId: String, initialMessage: Message) {
-        try {
-            // Vérifier si le chat existe déjà
 
-            val chatDocument = chatsCollection.document(chatId).get().await()
-            if (!chatDocument.exists()) {
-                // Créer le document du chat
-                chatsCollection.document(chatId).set(mapOf("id" to chatId)).await()
-                // Ajouter le premier message
-                val messageId = sendMessage(chatId, initialMessage.message, initialMessage.senderId, initialMessage.receiverId)
-                if (messageId != null) {
-                    // Le message a été envoyé avec succès
-                    println("Chat created successfully with initial message.")
-                } else {
-                    println("Chat created, but failed to send initial message.")
-                }
-            } else {
-                println("Chat already exists.")
-            }
-        } catch (e: Exception) {
-            println("Error creating chat: ${e.message}")
-        }
-    }
 
 }
 

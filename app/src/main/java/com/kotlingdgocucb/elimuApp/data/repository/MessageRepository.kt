@@ -11,5 +11,5 @@ interface MessageRepository {
 
     suspend fun markMessageAsRead(chatId: String, messageId: String)
 
-    suspend fun createChat(chatId: String, initialMessage: Message)
+
 }
